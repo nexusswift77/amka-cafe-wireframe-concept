@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { Json } from "@/integrations/supabase/types";
 
 // Types for wallet data
 export interface Wallet {
@@ -15,11 +16,13 @@ export interface Wallet {
 export interface Transaction {
   id: string;
   user_id: string;
-  type: 'purchase' | 'top-up' | 'points_redemption';
+  // Update to allow any string for type, while documenting expected values in comments
+  // This avoids type errors when fetching from the database
+  type: string; // 'purchase' | 'top-up' | 'points_redemption'
   amount: number;
   points_earned?: number;
   points_used?: number;
-  details?: any;
+  details?: Json;
   created_at: string;
   status: 'pending' | 'completed' | 'failed';
 }
@@ -61,7 +64,7 @@ export const fetchTransactions = async (): Promise<Transaction[]> => {
       throw error;
     }
     
-    return transactions || [];
+    return transactions as Transaction[] || [];
   } catch (error) {
     toast({
       title: "Failed to load transactions",
@@ -75,13 +78,26 @@ export const fetchTransactions = async (): Promise<Transaction[]> => {
 // Top up the wallet
 export const topUpWallet = async (amount: number, paymentMethod: string): Promise<boolean> => {
   try {
+    // Get the current user's ID
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "You must be logged in to perform this action.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
     // Format for database (stored in cents)
     const amountInCents = Math.round(amount * 100);
     
-    // Insert the top-up transaction
+    // Insert the top-up transaction with user_id
     const { error } = await supabase
       .from('transactions')
       .insert({
+        user_id: session.user.id,
         type: 'top-up',
         amount: amountInCents,
         details: { payment_method: paymentMethod },
