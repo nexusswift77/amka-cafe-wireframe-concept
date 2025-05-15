@@ -18,7 +18,7 @@ const featuredItems = [
     name: "Avocado Toast",
     description: "Artisanal sourdough topped with fresh avocado, cherry tomatoes, and feta",
     price: "Ksh 450",
-    image: "https://images.unsplash.com/photo-1588137378633-dea1536f6a2d?q=80&w=1200&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1603046891744-7c041f69e472?q=80&w=1200&auto=format&fit=crop"
   },
   {
     id: 3,
