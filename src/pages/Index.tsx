@@ -18,14 +18,14 @@ const featuredItems = [
     name: "Avocado Toast",
     description: "Artisanal sourdough topped with fresh avocado, cherry tomatoes, and feta",
     price: "Ksh 450",
-    image: "https://images.unsplash.com/photo-1603046891744-7c041f69e472?q=80&w=1200&auto=format&fit=crop"
+    image: "https://unsplash.com/photos/wheat-bread-with-avocado-spread-beside-white-plastic-spoon-and-pressed-lime-on-round-white-plate-nM1FZ-SCXnE?q=80&w=1200&auto=format&fit=crop"
   },
   {
     id: 3,
     name: "Blueberry Muffin",
     description: "Freshly baked muffin loaded with organic blueberries",
     price: "Ksh 250",
-    image: "https://images.unsplash.com/photo-1607958996333-41785c147cb4?q=80&w=1200&auto=format&fit=crop"
+    image: "https://unsplash.com/photos/blueberry-muffins-in-a-muffin-tin-on-a-cutting-board-5p6pM1LlLk4?q=80&w=1200&auto=format&fit=crop"
   },
   {
     id: 4,
