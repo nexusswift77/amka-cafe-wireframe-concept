@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          details: Json | null
+          id: string
+          points_earned: number | null
+          points_used: number | null
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          details?: Json | null
+          id?: string
+          points_earned?: number | null
+          points_used?: number | null
+          status?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          details?: Json | null
+          id?: string
+          points_earned?: number | null
+          points_used?: number | null
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string | null
@@ -36,6 +72,33 @@ export type Database = {
           name?: string | null
           password_hash?: string | null
           phone?: string | null
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          points?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
