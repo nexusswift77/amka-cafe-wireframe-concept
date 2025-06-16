@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,13 +10,24 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, User, Bell, Settings, Coffee, LogOut } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Calendar, User, Bell, Settings, Coffee, LogOut, Edit } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWallet } from '@/hooks/useWallet';
 
 const Profile: React.FC = () => {
   const { user, signOut } = useAuth();
   const { wallet } = useWallet();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    fullName: '',
+    phone: '',
+    dateOfBirth: '',
+    address: '',
+    city: '',
+    state: '',
+    postalCode: ''
+  });
   
   // Use real user data or show loading state
   if (!user) {
@@ -55,6 +65,27 @@ const Profile: React.FC = () => {
     await signOut();
   };
 
+  const handleEditProfile = () => {
+    // Initialize form with current user data
+    setEditForm({
+      fullName: userName,
+      phone: '',
+      dateOfBirth: '',
+      address: '',
+      city: '',
+      state: '',
+      postalCode: ''
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveProfile = () => {
+    // In a real app, this would save to the database
+    console.log('Saving profile:', editForm);
+    setIsEditDialogOpen(false);
+    // TODO: Implement actual profile update logic with Supabase
+  };
+
   return (
     <PageLayout>
       <div className="bg-cream py-8 px-4 md:px-6">
@@ -70,7 +101,103 @@ const Profile: React.FC = () => {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="md:self-start">Edit Profile</Button>
+              <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" onClick={handleEditProfile} className="md:self-start">
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Profile
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Edit Profile</DialogTitle>
+                    <DialogDescription>
+                      Update your personal information and preferences.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-fullName">Full Name</Label>
+                        <Input 
+                          id="edit-fullName" 
+                          value={editForm.fullName}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, fullName: e.target.value }))}
+                          placeholder="Enter your full name" 
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-phone">Phone</Label>
+                        <Input 
+                          id="edit-phone" 
+                          value={editForm.phone}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="Enter your phone number" 
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-dob">Date of Birth</Label>
+                        <Input 
+                          id="edit-dob" 
+                          type="date" 
+                          value={editForm.dateOfBirth}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-address">Address</Label>
+                        <Input 
+                          id="edit-address" 
+                          value={editForm.address}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
+                          placeholder="Street Address" 
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-city">City</Label>
+                          <Input 
+                            id="edit-city" 
+                            value={editForm.city}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, city: e.target.value }))}
+                            placeholder="City" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-state">State</Label>
+                          <Input 
+                            id="edit-state" 
+                            value={editForm.state}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, state: e.target.value }))}
+                            placeholder="State" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-postal">Postal</Label>
+                          <Input 
+                            id="edit-postal" 
+                            value={editForm.postalCode}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, postalCode: e.target.value }))}
+                            placeholder="Postal Code" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveProfile} className="gradient-button">
+                      Save Changes
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
               <Button variant="outline" onClick={handleSignOut} className="md:self-start">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
