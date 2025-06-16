@@ -9,156 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      menu_items: {
-        Row: {
-          category: string
-          created_at: string | null
-          description: string | null
-          id: string
-          image_url: string | null
-          is_available: boolean | null
-          is_popular: boolean | null
-          name: string
-          price: number
-          updated_at: string | null
-        }
-        Insert: {
-          category: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          is_available?: boolean | null
-          is_popular?: boolean | null
-          name: string
-          price: number
-          updated_at?: string | null
-        }
-        Update: {
-          category?: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          is_available?: boolean | null
-          is_popular?: boolean | null
-          name?: string
-          price?: number
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      profiles: {
+      users: {
         Row: {
           created_at: string | null
-          date_of_birth: string | null
-          first_name: string
-          id: string
-          last_name: string
-          phone_number: string | null
-          updated_at: string | null
+          email: string | null
+          id: number
+          modified_at: string | null
+          name: string | null
+          password_hash: string | null
+          phone: string | null
         }
         Insert: {
           created_at?: string | null
-          date_of_birth?: string | null
-          first_name: string
-          id: string
-          last_name: string
-          phone_number?: string | null
-          updated_at?: string | null
+          email?: string | null
+          id?: number
+          modified_at?: string | null
+          name?: string | null
+          password_hash?: string | null
+          phone?: string | null
         }
         Update: {
           created_at?: string | null
-          date_of_birth?: string | null
-          first_name?: string
-          id?: string
-          last_name?: string
-          phone_number?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      transactions: {
-        Row: {
-          amount: number
-          created_at: string | null
-          details: Json | null
-          id: string
-          points_earned: number | null
-          points_used: number | null
-          status: string
-          type: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string | null
-          details?: Json | null
-          id?: string
-          points_earned?: number | null
-          points_used?: number | null
-          status?: string
-          type: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string | null
-          details?: Json | null
-          id?: string
-          points_earned?: number | null
-          points_used?: number | null
-          status?: string
-          type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string | null
-          id: string
-          role: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          role: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          role?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      wallets: {
-        Row: {
-          balance: number
-          created_at: string | null
-          id: string
-          points: number
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          balance?: number
-          created_at?: string | null
-          id?: string
-          points?: number
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          balance?: number
-          created_at?: string | null
-          id?: string
-          points?: number
-          updated_at?: string | null
-          user_id?: string
+          email?: string | null
+          id?: number
+          modified_at?: string | null
+          name?: string | null
+          password_hash?: string | null
+          phone?: string | null
         }
         Relationships: []
       }

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import DeliveryCustomizationPopup, { DeliveryDetails } from '@/components/order/DeliveryCustomizationPopup';
+import { MapPin, Edit3 } from 'lucide-react';
 
 const Order: React.FC = () => {
   const [orderItems, setOrderItems] = useState([
@@ -34,6 +35,8 @@ const Order: React.FC = () => {
   
   const [orderType, setOrderType] = useState('delivery');
   const [paymentMethod, setPaymentMethod] = useState('mpesa');
+  const [isDeliveryPopupOpen, setIsDeliveryPopupOpen] = useState(false);
+  const [deliveryDetails, setDeliveryDetails] = useState<DeliveryDetails | null>(null);
   
   const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity < 1) return;
@@ -62,7 +65,11 @@ const Order: React.FC = () => {
   const deliveryFee = orderType === 'delivery' ? 150 : 0;
   const total = subtotal + serviceFee + deliveryFee;
   
-  const pointsEarned = Math.floor(total / 100) * 10; // 10 points per 100 spent
+  const pointsEarned = Math.floor(total / 100) * 10;
+
+  const handleDeliveryDetailsUpdate = (details: DeliveryDetails) => {
+    setDeliveryDetails(details);
+  };
 
   return (
     <PageLayout>
@@ -166,14 +173,43 @@ const Order: React.FC = () => {
                 
                 {orderType === 'delivery' && (
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="address">Delivery Address</Label>
-                      <Input id="address" placeholder="Enter your address" className="mt-1" />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input id="phone" placeholder="Enter phone number" className="mt-1" />
-                    </div>
+                    {deliveryDetails ? (
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-5 w-5 text-coffee-medium" />
+                            <span className="font-medium">Delivery Address</span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsDeliveryPopupOpen(true)}
+                          >
+                            <Edit3 className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <p>{deliveryDetails.address}</p>
+                          {deliveryDetails.apartment && <p>{deliveryDetails.apartment}</p>}
+                          {deliveryDetails.businessName && <p>{deliveryDetails.businessName}</p>}
+                          <p className="text-gray-600">Phone: {deliveryDetails.phone}</p>
+                          {deliveryDetails.deliveryTime === 'scheduled' && deliveryDetails.scheduledTime && (
+                            <p className="text-coffee-medium">
+                              Scheduled for: {new Date(deliveryDetails.scheduledTime).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={() => setIsDeliveryPopupOpen(true)}
+                        className="w-full gradient-button"
+                      >
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Add Delivery Details
+                      </Button>
+                    )}
                   </div>
                 )}
                 
@@ -263,12 +299,24 @@ const Order: React.FC = () => {
                   </div>
                 </div>
                 
-                <Button className="gradient-button w-full">Complete Order</Button>
+                <Button 
+                  className="gradient-button w-full"
+                  disabled={orderType === 'delivery' && !deliveryDetails}
+                >
+                  Complete Order
+                </Button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <DeliveryCustomizationPopup
+        isOpen={isDeliveryPopupOpen}
+        onClose={() => setIsDeliveryPopupOpen(false)}
+        onSave={handleDeliveryDetailsUpdate}
+        currentDetails={deliveryDetails || undefined}
+      />
     </PageLayout>
   );
 };

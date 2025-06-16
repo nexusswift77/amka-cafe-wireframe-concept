@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -17,7 +16,7 @@ const Reserve: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string>("");
   const [guests, setGuests] = useState<string>("2");
-  const [location, setLocation] = useState<string>("any");
+  const [location, setLocation] = useState<string>("area1");
   const [name, setName] = useState<string>("");
   const [phone, setPhone] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -32,7 +31,6 @@ const Reserve: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle reservation submission
     console.log({
       date,
       time,
@@ -85,7 +83,6 @@ const Reserve: React.FC = () => {
                           onSelect={setDate}
                           initialFocus
                           disabled={(date) => {
-                            // Disable dates in the past
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
                             return date < today;
@@ -124,23 +121,15 @@ const Reserve: React.FC = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Table Location</Label>
+                    <Label>Seating Area</Label>
                     <RadioGroup value={location} onValueChange={setLocation} className="flex flex-col space-y-1">
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="any" id="any" />
-                        <Label htmlFor="any">Any Location</Label>
+                        <RadioGroupItem value="area1" id="area1" />
+                        <Label htmlFor="area1">Area 1 (Main Dining)</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="window" id="window" />
-                        <Label htmlFor="window">Window</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="outdoor" id="outdoor" />
-                        <Label htmlFor="outdoor">Outdoor</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="quiet" id="quiet" />
-                        <Label htmlFor="quiet">Quiet Zone</Label>
+                        <RadioGroupItem value="area2" id="area2" />
+                        <Label htmlFor="area2">Area 2 (Cozy Corner)</Label>
                       </div>
                     </RadioGroup>
                   </div>
@@ -197,6 +186,23 @@ const Reserve: React.FC = () => {
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                     />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm">
+                    <h3 className="font-semibold text-blue-900 mb-2">Data Privacy Notice</h3>
+                    <p className="text-blue-800 leading-relaxed">
+                      By making a reservation, you consent to Café Amka collecting and using your personal information 
+                      (name, phone, email) for reservation management, communication about your booking, and to improve 
+                      our services. We protect your data in accordance with our privacy policy and will not share it 
+                      with third parties without your consent.
+                    </p>
                   </div>
                 </div>
               </div>
