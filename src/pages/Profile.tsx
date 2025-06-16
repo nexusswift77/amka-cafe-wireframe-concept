@@ -12,24 +12,48 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Calendar, User, Bell, Settings, Coffee, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useWallet } from '@/hooks/useWallet';
 
 const Profile: React.FC = () => {
-  // Dummy loyalty data
-  const points = 370;
+  const { user, signOut } = useAuth();
+  const { wallet } = useWallet();
+  
+  // Use real user data or show loading state
+  if (!user) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <p className="text-coffee-dark">Loading profile...</p>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // Use actual user data
+  const userEmail = user.email || 'No email provided';
+  const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+  const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
+  
+  // Use real wallet data or defaults
+  const points = wallet?.points || 50; // Default welcome bonus
   const nextTier = 500;
   const progress = (points / nextTier) * 100;
   
-  // Dummy activity data
+  // Dummy activity data - in a real app this would come from the database
   const recentActivity = [
-    { id: 1, action: "Earned 15 points", date: "2025-05-14", details: "Purchase: Cappuccino + Sandwich" },
-    { id: 2, action: "Redeemed Free Muffin", date: "2025-05-10", details: "60 points used" },
-    { id: 3, action: "Earned 12 points", date: "2025-05-07", details: "Purchase: Breakfast Menu" }
+    { id: 1, action: "Welcome bonus received", date: new Date().toISOString().split('T')[0], details: "50 points awarded" },
+    { id: 2, action: "Account created", date: new Date(user.created_at).toISOString().split('T')[0], details: "Welcome to our cafe!" }
   ];
   
   // Dummy dietary preferences
-  const dietaryPreferences = [
-    "Vegetarian", "Low Sugar", "Organic", "Gluten Free"
-  ];
+  const dietaryPreferences: string[] = [];
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <PageLayout>
@@ -38,15 +62,20 @@ const Profile: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-coffee-light">
-                <AvatarImage src="https://i.pravatar.cc/150?img=32" alt="User" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarFallback>{userInitials}</AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-coffee-dark">Jane Doe</h1>
-                <p className="text-coffee-dark/80">jane.doe@example.com</p>
+                <h1 className="text-2xl md:text-3xl font-bold text-coffee-dark">{userName}</h1>
+                <p className="text-coffee-dark/80">{userEmail}</p>
               </div>
             </div>
-            <Button variant="outline" className="md:self-start">Edit Profile</Button>
+            <div className="flex gap-2">
+              <Button variant="outline" className="md:self-start">Edit Profile</Button>
+              <Button variant="outline" onClick={handleSignOut} className="md:self-start">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -75,36 +104,57 @@ const Profile: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <span className="font-bold text-xl">Silver Tier</span>
-                        <Badge variant="outline" className="bg-coffee-light/10">370 Points</Badge>
+                        <span className="font-bold text-xl">
+                          {points >= 500 ? 'Gold Tier' : points >= 200 ? 'Silver Tier' : 'Bronze Tier'}
+                        </span>
+                        <Badge variant="outline" className="bg-coffee-light/10">{points} Points</Badge>
                       </div>
                       
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span>Progress to Gold Tier</span>
-                          <span>{points}/{nextTier}</span>
+                          <span>Progress to {points >= 500 ? 'Platinum' : 'Gold'} Tier</span>
+                          <span>{points}/{points >= 500 ? 1000 : nextTier}</span>
                         </div>
                         <Progress value={progress} className="h-2" />
                       </div>
                       
                       <div className="bg-cream p-4 rounded-md">
-                        <h4 className="font-bold mb-2">Silver Tier Benefits</h4>
+                        <h4 className="font-bold mb-2">Current Tier Benefits</h4>
                         <ul className="list-disc pl-5 space-y-1 text-sm">
-                          <li>Free coffee on your birthday</li>
-                          <li>10% off on weekday mornings</li>
-                          <li>Free size upgrades</li>
+                          {points >= 500 ? (
+                            <>
+                              <li>15% off on all purchases</li>
+                              <li>Priority pickup</li>
+                              <li>Exclusive monthly events</li>
+                              <li>Double points on weekends</li>
+                            </>
+                          ) : points >= 200 ? (
+                            <>
+                              <li>Free coffee on your birthday</li>
+                              <li>10% off on weekday mornings</li>
+                              <li>Free size upgrades</li>
+                            </>
+                          ) : (
+                            <>
+                              <li>Earn points with every purchase</li>
+                              <li>Birthday surprise</li>
+                              <li>Welcome bonus received</li>
+                            </>
+                          )}
                         </ul>
                       </div>
                       
-                      <div className="bg-cream/50 p-4 rounded-md border border-dashed border-coffee-light">
-                        <h4 className="font-bold mb-2">Next Tier: Gold (500 points)</h4>
-                        <ul className="list-disc pl-5 space-y-1 text-sm text-coffee-dark/80">
-                          <li>15% off on all purchases</li>
-                          <li>Priority pickup</li>
-                          <li>Exclusive monthly events</li>
-                          <li>Double points on weekends</li>
-                        </ul>
-                      </div>
+                      {points < 500 && (
+                        <div className="bg-cream/50 p-4 rounded-md border border-dashed border-coffee-light">
+                          <h4 className="font-bold mb-2">Next Tier: Gold (500 points)</h4>
+                          <ul className="list-disc pl-5 space-y-1 text-sm text-coffee-dark/80">
+                            <li>15% off on all purchases</li>
+                            <li>Priority pickup</li>
+                            <li>Exclusive monthly events</li>
+                            <li>Double points on weekends</li>
+                          </ul>
+                        </div>
+                      )}
                     </div>
                     
                     <div>
@@ -122,9 +172,13 @@ const Profile: React.FC = () => {
                           </div>
                         ))}
                       </div>
-                      <div className="mt-4 text-center">
-                        <Button variant="link" className="text-coffee-medium">View All Activity</Button>
-                      </div>
+                      {wallet && (
+                        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                          <p className="text-sm font-medium text-green-800">
+                            Current Balance: Ksh {((wallet.balance || 0) / 100).toFixed(2)}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -142,7 +196,13 @@ const Profile: React.FC = () => {
                       <p className="text-sm text-gray-600 mb-4">Any regular sized coffee of your choice</p>
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-coffee-medium">100 points</span>
-                        <Button variant="outline" size="sm">Redeem</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          disabled={points < 100}
+                        >
+                          {points >= 100 ? 'Redeem' : 'Need more points'}
+                        </Button>
                       </div>
                     </div>
                     
@@ -151,7 +211,13 @@ const Profile: React.FC = () => {
                       <p className="text-sm text-gray-600 mb-4">Any pastry from our daily selection</p>
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-coffee-medium">150 points</span>
-                        <Button variant="outline" size="sm">Redeem</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          disabled={points < 150}
+                        >
+                          {points >= 150 ? 'Redeem' : 'Need more points'}
+                        </Button>
                       </div>
                     </div>
                     
@@ -160,7 +226,13 @@ const Profile: React.FC = () => {
                       <p className="text-sm text-gray-600 mb-4">Sandwich + Coffee combo</p>
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-coffee-medium">300 points</span>
-                        <Button variant="outline" size="sm">Redeem</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          disabled={points < 300}
+                        >
+                          {points >= 300 ? 'Redeem' : 'Need more points'}
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -181,23 +253,23 @@ const Profile: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="fullName">Full Name</Label>
-                        <Input id="fullName" value="Jane Doe" />
+                        <Input id="fullName" value={userName} placeholder="Enter your full name" />
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" value="jane.doe@example.com" />
+                        <Input id="email" type="email" value={userEmail} disabled />
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="phone">Phone</Label>
-                        <Input id="phone" value="+254 123 456 789" />
+                        <Input id="phone" placeholder="Enter your phone number" />
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="dob">Date of Birth</Label>
                         <div className="flex gap-2">
-                          <Input id="dob" value="1990-06-15" type="date" />
+                          <Input id="dob" type="date" />
                           <Button variant="outline" size="icon">
                             <Calendar className="h-5 w-5" />
                           </Button>
@@ -209,11 +281,11 @@ const Profile: React.FC = () => {
                     
                     <div className="space-y-4">
                       <Label>Address</Label>
-                      <Input placeholder="Street Address" value="123 Coffee Lane" />
+                      <Input placeholder="Street Address" />
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Input placeholder="City" value="Nairobi" />
-                        <Input placeholder="State/Region" value="Nairobi County" />
-                        <Input placeholder="Postal Code" value="00100" />
+                        <Input placeholder="City" />
+                        <Input placeholder="State/Region" />
+                        <Input placeholder="Postal Code" />
                       </div>
                     </div>
                     
@@ -233,50 +305,27 @@ const Profile: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2 mb-6">
-                    {dietaryPreferences.map((pref, index) => (
-                      <Badge key={index} variant="outline" className="bg-coffee-light/10 text-coffee-dark">
-                        {pref}
-                        <button className="ml-1 text-coffee-dark/60 hover:text-coffee-dark">×</button>
-                      </Badge>
-                    ))}
+                    {dietaryPreferences.length > 0 ? (
+                      dietaryPreferences.map((pref, index) => (
+                        <Badge key={index} variant="outline" className="bg-coffee-light/10 text-coffee-dark">
+                          {pref}
+                          <button className="ml-1 text-coffee-dark/60 hover:text-coffee-dark">×</button>
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">No dietary preferences set</p>
+                    )}
                     <Button variant="outline" size="sm" className="rounded-full">+ Add</Button>
                   </div>
                   
                   <div className="space-y-4">
                     <div>
                       <h3 className="font-bold text-lg mb-2">Favorite Items</h3>
-                      <p className="text-sm text-gray-600 mb-4">Your most ordered items will appear here</p>
+                      <p className="text-sm text-gray-600 mb-4">Your most ordered items will appear here as you use our service</p>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                        <div className="flex items-center gap-3 p-2 border rounded-md">
-                          <div className="h-10 w-10 bg-cream rounded-md flex items-center justify-center">
-                            <Coffee className="h-6 w-6 text-coffee-dark" />
-                          </div>
-                          <div className="text-sm">
-                            <p className="font-medium">Cappuccino</p>
-                            <p className="text-xs text-gray-500">Ordered 12 times</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-3 p-2 border rounded-md">
-                          <div className="h-10 w-10 bg-cream rounded-md flex items-center justify-center">
-                            <Coffee className="h-6 w-6 text-coffee-dark" />
-                          </div>
-                          <div className="text-sm">
-                            <p className="font-medium">Avocado Toast</p>
-                            <p className="text-xs text-gray-500">Ordered 8 times</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-3 p-2 border rounded-md">
-                          <div className="h-10 w-10 bg-cream rounded-md flex items-center justify-center">
-                            <Coffee className="h-6 w-6 text-coffee-dark" />
-                          </div>
-                          <div className="text-sm">
-                            <p className="font-medium">Blueberry Muffin</p>
-                            <p className="text-xs text-gray-500">Ordered 5 times</p>
-                          </div>
-                        </div>
+                      <div className="text-center py-8 text-gray-500">
+                        <Coffee className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>Start ordering to see your favorites!</p>
                       </div>
                     </div>
                     
@@ -296,7 +345,7 @@ const Profile: React.FC = () => {
                           <Label htmlFor="sms-marketing" className="flex-1">
                             SMS notifications
                           </Label>
-                          <Switch id="sms-marketing" defaultChecked />
+                          <Switch id="sms-marketing" />
                         </div>
                         
                         <div className="flex items-center justify-between">
@@ -411,54 +460,14 @@ const Profile: React.FC = () => {
                   <CardDescription>Your recent orders and reservations</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="bg-white border rounded-md p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <p className="font-bold">Order #12345</p>
-                          <p className="text-sm text-gray-500">May 14, 2025 • 3:22 PM</p>
-                        </div>
-                        <Badge>Completed</Badge>
-                      </div>
-                      <p className="text-sm mb-2">1x Cappuccino, 1x Chicken Sandwich</p>
-                      <div className="flex justify-between items-center">
-                        <p className="font-bold">Ksh 650</p>
-                        <Button variant="outline" size="sm">Reorder</Button>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-white border rounded-md p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <p className="font-bold">Table Reservation</p>
-                          <p className="text-sm text-gray-500">May 12, 2025 • 7:00 PM</p>
-                        </div>
-                        <Badge>Completed</Badge>
-                      </div>
-                      <p className="text-sm mb-2">Window table for 4 guests</p>
-                      <div className="flex justify-end">
-                        <Button variant="outline" size="sm">Book Again</Button>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-white border rounded-md p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <p className="font-bold">Order #12344</p>
-                          <p className="text-sm text-gray-500">May 10, 2025 • 10:15 AM</p>
-                        </div>
-                        <Badge>Completed</Badge>
-                      </div>
-                      <p className="text-sm mb-2">1x Breakfast Menu, 2x Cappuccino</p>
-                      <div className="flex justify-between items-center">
-                        <p className="font-bold">Ksh 850</p>
-                        <Button variant="outline" size="sm">Reorder</Button>
-                      </div>
-                    </div>
+                  <div className="text-center py-8 text-gray-500">
+                    <Coffee className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>No orders yet</p>
+                    <p className="text-sm mt-1">Your order history will appear here once you make your first purchase</p>
                   </div>
                   
                   <div className="flex justify-center mt-6">
-                    <Button variant="outline">View All Orders</Button>
+                    <Button variant="outline">Start Ordering</Button>
                   </div>
                 </CardContent>
               </Card>
