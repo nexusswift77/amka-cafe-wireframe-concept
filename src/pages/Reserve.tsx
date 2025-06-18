@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,11 +9,18 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon, Shield } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { Calendar as CalendarIcon, Shield, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { createReservation, getAvailableTimeSlots, type ReservationData } from '@/services/reservationService';
 
 const Reserve: React.FC = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string>("");
   const [guests, setGuests] = useState<string>("2");
@@ -21,26 +29,161 @@ const Reserve: React.FC = () => {
   const [phone, setPhone] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [isLoadingTimes, setIsLoadingTimes] = useState(false);
   
-  const availableTimes = [
-    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", 
-    "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", 
-    "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", 
-    "18:00", "18:30", "19:00", "19:30"
-  ];
+  // Pre-fill user data if available
+  useEffect(() => {
+    if (user?.user_metadata) {
+      const { first_name, last_name } = user.user_metadata;
+      if (first_name && last_name) {
+        setName(`${first_name} ${last_name}`);
+      }
+      if (user.email) {
+        setEmail(user.email);
+      }
+    }
+  }, [user]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Load available times when date, guests, or location changes
+  useEffect(() => {
+    if (date && guests && location) {
+      loadAvailableTimes();
+    }
+  }, [date, guests, location]);
+
+  const loadAvailableTimes = async () => {
+    if (!date) return;
+    
+    setIsLoadingTimes(true);
+    try {
+      const dateString = format(date, 'yyyy-MM-dd');
+      const guestCount = parseInt(guests);
+      const times = await getAvailableTimeSlots(dateString, guestCount, location);
+      setAvailableTimes(times);
+      
+      // Clear selected time if it's no longer available
+      if (time && !times.includes(time)) {
+        setTime("");
+      }
+    } catch (error) {
+      console.error('Error loading available times:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load available times. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingTimes(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({
-      date,
-      time,
-      guests,
-      location,
-      name,
-      phone,
-      email,
-      notes
-    });
+    
+    // Check if user is logged in
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to make a reservation",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+    
+    // Validate form
+    if (!date || !time || !guests || !location || !name || !phone || !email) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validate phone format (basic validation)
+    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+    if (!phoneRegex.test(phone)) {
+      toast({
+        title: "Invalid phone number",
+        description: "Please enter a valid phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const reservationData: ReservationData = {
+        reservationDate: format(date, 'yyyy-MM-dd'),
+        reservationTime: time,
+        guests: parseInt(guests),
+        seatingArea: location,
+        customerName: name,
+        customerPhone: phone,
+        customerEmail: email,
+        specialRequests: notes || undefined,
+      };
+      
+      const result = await createReservation(reservationData);
+      
+      if (result.success) {
+        toast({
+          title: "Reservation confirmed!",
+          description: "Your table has been reserved. You'll receive a confirmation email shortly.",
+        });
+        
+        // Reset form
+        setDate(undefined);
+        setTime("");
+        setGuests("2");
+        setLocation("area1");
+        setName("");
+        setPhone("");
+        setEmail("");
+        setNotes("");
+        
+        // Redirect to profile to view reservations
+        navigate('/profile');
+      } else {
+        toast({
+          title: "Reservation failed",
+          description: result.error || "Unable to create reservation. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Reservation error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getLocationName = (locationValue: string) => {
+    switch (locationValue) {
+      case 'area1': return 'Area 1 (Main Dining)';
+      case 'area2': return 'Area 2 (Cozy Corner)';
+      default: return locationValue;
+    }
   };
 
   return (
@@ -61,7 +204,7 @@ const Reserve: React.FC = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="date">Date</Label>
+                    <Label htmlFor="date">Date *</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -93,27 +236,45 @@ const Reserve: React.FC = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="time">Time</Label>
-                    <Select value={time} onValueChange={setTime}>
+                    <Label htmlFor="time">Time *</Label>
+                    <Select value={time} onValueChange={setTime} disabled={isLoadingTimes}>
                       <SelectTrigger id="time">
-                        <SelectValue placeholder="Select time" />
+                        <SelectValue placeholder={isLoadingTimes ? "Loading times..." : "Select time"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableTimes.map((t) => (
-                          <SelectItem key={t} value={t}>{t}</SelectItem>
-                        ))}
+                        {isLoadingTimes ? (
+                          <SelectItem value="loading" disabled>
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Loading available times...
+                            </div>
+                          </SelectItem>
+                        ) : availableTimes.length > 0 ? (
+                          availableTimes.map((t) => (
+                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="none" disabled>
+                            No available times for this selection
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
+                    {date && availableTimes.length === 0 && !isLoadingTimes && (
+                      <p className="text-sm text-red-600">
+                        No available times for this date and party size. Try selecting a different date or reducing party size.
+                      </p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="guests">Number of Guests</Label>
+                    <Label htmlFor="guests">Number of Guests *</Label>
                     <Select value={guests} onValueChange={setGuests}>
                       <SelectTrigger id="guests">
                         <SelectValue placeholder="Select number of guests" />
                       </SelectTrigger>
                       <SelectContent>
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((num) => (
                           <SelectItem key={num} value={num.toString()}>{num} {num === 1 ? 'guest' : 'guests'}</SelectItem>
                         ))}
                       </SelectContent>
@@ -121,7 +282,7 @@ const Reserve: React.FC = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Seating Area</Label>
+                    <Label>Seating Area *</Label>
                     <RadioGroup value={location} onValueChange={setLocation} className="flex flex-col space-y-1">
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="area1" id="area1" />
@@ -143,7 +304,7 @@ const Reserve: React.FC = () => {
                 
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
+                    <Label htmlFor="name">Full Name *</Label>
                     <Input 
                       id="name" 
                       placeholder="Enter your name"
@@ -155,7 +316,7 @@ const Reserve: React.FC = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="phone">Phone Number *</Label>
                       <Input 
                         id="phone" 
                         placeholder="Enter phone number"
@@ -166,7 +327,7 @@ const Reserve: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email">Email *</Label>
                       <Input 
                         id="email" 
                         type="email"
@@ -211,7 +372,26 @@ const Reserve: React.FC = () => {
                 <p className="text-sm text-gray-500">
                   You'll receive a confirmation email once your reservation is confirmed.
                 </p>
-                <Button type="submit" className="gradient-button">Reserve Table</Button>
+                <Button 
+                  type="submit" 
+                  className="gradient-button"
+                  disabled={isLoading || !user || !date || !time || availableTimes.length === 0}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Reservation...
+                    </>
+                  ) : !user ? (
+                    "Sign In Required"
+                  ) : !date || !time ? (
+                    "Select Date & Time"
+                  ) : availableTimes.length === 0 ? (
+                    "No Available Times"
+                  ) : (
+                    "Reserve Table"
+                  )}
+                </Button>
               </div>
             </form>
           </div>

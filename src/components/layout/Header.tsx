@@ -1,11 +1,13 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, User, ShoppingCart, Wallet, Home, Coffee, Calendar } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useCart } from '@/contexts/CartContext';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { totalItems } = useCart();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -30,9 +32,14 @@ const Header: React.FC = () => {
         </nav>
 
         {/* Mobile Menu Button */}
-        <div className="flex items-center space-x-4 md:hidden">
-          <Link to="/cart">
+        <div className="flex md:hidden items-center space-x-4">
+          <Link to="/cart" className="relative">
             <ShoppingCart className="h-6 w-6 text-coffee-dark" />
+            {totalItems > 0 && (
+              <Badge className="absolute -top-2 -right-2 bg-coffee-medium text-white text-xs min-w-[1.25rem] h-5 flex items-center justify-center rounded-full">
+                {totalItems}
+              </Badge>
+            )}
           </Link>
           <Button variant="ghost" size="icon" onClick={toggleMenu}>
             {isMenuOpen ? (
@@ -45,8 +52,13 @@ const Header: React.FC = () => {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center space-x-4">
-          <Link to="/cart">
+          <Link to="/cart" className="relative">
             <ShoppingCart className="h-6 w-6 text-coffee-dark hover:text-coffee-medium transition-colors" />
+            {totalItems > 0 && (
+              <Badge className="absolute -top-2 -right-2 bg-coffee-medium text-white text-xs min-w-[1.25rem] h-5 flex items-center justify-center rounded-full">
+                {totalItems}
+              </Badge>
+            )}
           </Link>
           <Link to="/profile">
             <User className="h-6 w-6 text-coffee-dark hover:text-coffee-medium transition-colors" />
@@ -56,57 +68,70 @@ const Header: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t">
-          <div className="cafe-container py-4 flex flex-col space-y-4">
+        <div className="md:hidden bg-white border-t border-gray-200">
+          <nav className="flex flex-col space-y-4 p-4">
             <Link 
               to="/" 
-              className="flex items-center p-2 hover:bg-cream rounded-md"
-              onClick={toggleMenu}
+              className="flex items-center space-x-3 text-coffee-dark hover:text-coffee-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
             >
-              <Home className="h-5 w-5 mr-3 text-coffee-dark" />
+              <Home className="h-5 w-5" />
               <span>Home</span>
             </Link>
             <Link 
               to="/menu" 
-              className="flex items-center p-2 hover:bg-cream rounded-md"
-              onClick={toggleMenu}
+              className="flex items-center space-x-3 text-coffee-dark hover:text-coffee-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
             >
-              <Coffee className="h-5 w-5 mr-3 text-coffee-dark" />
+              <Coffee className="h-5 w-5" />
               <span>Menu</span>
             </Link>
             <Link 
-              to="/order" 
-              className="flex items-center p-2 hover:bg-cream rounded-md"
-              onClick={toggleMenu}
+              to="/cart" 
+              className="flex items-center space-x-3 text-coffee-dark hover:text-coffee-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
             >
-              <ShoppingCart className="h-5 w-5 mr-3 text-coffee-dark" />
+              <ShoppingCart className="h-5 w-5" />
+              <span>Cart</span>
+              {totalItems > 0 && (
+                <Badge className="bg-coffee-medium text-white text-xs">
+                  {totalItems}
+                </Badge>
+              )}
+            </Link>
+            <Link 
+              to="/order" 
+              className="flex items-center space-x-3 text-coffee-dark hover:text-coffee-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Coffee className="h-5 w-5" />
               <span>Order</span>
             </Link>
             <Link 
               to="/reserve" 
-              className="flex items-center p-2 hover:bg-cream rounded-md"
-              onClick={toggleMenu}
+              className="flex items-center space-x-3 text-coffee-dark hover:text-coffee-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
             >
-              <Calendar className="h-5 w-5 mr-3 text-coffee-dark" />
+              <Calendar className="h-5 w-5" />
               <span>Reserve</span>
             </Link>
             <Link 
               to="/wallet" 
-              className="flex items-center p-2 hover:bg-cream rounded-md"
-              onClick={toggleMenu}
+              className="flex items-center space-x-3 text-coffee-dark hover:text-coffee-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
             >
-              <Wallet className="h-5 w-5 mr-3 text-coffee-dark" />
+              <Wallet className="h-5 w-5" />
               <span>Wallet</span>
             </Link>
             <Link 
               to="/profile" 
-              className="flex items-center p-2 hover:bg-cream rounded-md"
-              onClick={toggleMenu}
+              className="flex items-center space-x-3 text-coffee-dark hover:text-coffee-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
             >
-              <User className="h-5 w-5 mr-3 text-coffee-dark" />
+              <User className="h-5 w-5" />
               <span>Profile</span>
             </Link>
-          </div>
+          </nav>
         </div>
       )}
     </header>

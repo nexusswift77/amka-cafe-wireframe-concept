@@ -4,6 +4,26 @@
 
 **URL**: https://lovable.dev/projects/fbcb75a4-7b8f-4fc4-8701-b9d75e726826
 
+## Environment Setup
+
+Before running the project, you need to set up your environment variables for Supabase:
+
+1. Create a `.env.local` file in the root directory
+2. Add the following environment variables:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+To get these values:
+- Go to your [Supabase Dashboard](https://supabase.com/dashboard)
+- Select your project
+- Go to Settings > API
+- Copy the Project URL and anon public key
+
+**Note**: The project currently includes fallback values for the CAFE_AMKA project, but you should use your own Supabase project for development.
+
 ## How can I edit this code?
 
 There are several ways of editing your application.

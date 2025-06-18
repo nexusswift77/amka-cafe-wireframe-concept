@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
@@ -11,9 +11,11 @@ import { Wallet, CreditCard, Loader, UserRound } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
 import { topUpWallet, formatCurrency } from '@/services/walletService';
 import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const WalletPage: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { wallet, transactions, isLoading, error, refetchAll } = useWallet();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [amount, setAmount] = useState('');
@@ -76,17 +78,8 @@ const WalletPage: React.FC = () => {
     }
   };
 
-  // Check if user is authenticated
-  const { data: session } = useQuery({
-    queryKey: ['session'],
-    queryFn: async () => {
-      const { data } = await supabase.auth.getSession();
-      return data.session;
-    },
-  });
-
   // If no session, show login prompt
-  if (!session) {
+  if (!user) {
     return (
       <PageLayout>
         <div className="bg-cream py-8 px-4 md:px-6">
@@ -110,7 +103,7 @@ const WalletPage: React.FC = () => {
                 <p>Access your funds, earn points, and track your transactions.</p>
               </CardContent>
               <CardFooter className="flex justify-center">
-                <Button className="gradient-button" onClick={() => window.location.href = '/auth'}>
+                <Button className="gradient-button" onClick={() => navigate('/auth')}>
                   Log in or Sign up
                 </Button>
               </CardFooter>
