@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/contexts/CartContext';
 import { useMenuItems } from '@/hooks/useMenuData';
+import { useNavigate } from 'react-router-dom';
 
 interface CarouselItem {
   id: string; // Changed from number to string to support UUID
@@ -21,6 +22,7 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ items }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const { addItem, getItemQuantity, updateQuantity, items: cartItems } = useCart();
   const { data: menuItems = [] } = useMenuItems();
+  const navigate = useNavigate();
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % items.length);
@@ -64,6 +66,14 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ items }) => {
       updateQuantity(cartItem.id, cartItem.quantity - 1);
     } else if (cartItem) {
       updateQuantity(cartItem.id, 0); // This will remove the item
+    }
+  };
+
+  const handleBuyNow = (carouselItem: CarouselItem) => {
+    // Find the corresponding menu item from the database
+    const menuItem = menuItems.find(item => item.id === carouselItem.id);
+    if (menuItem) {
+      navigate('/checkout', { state: { item: menuItem } });
     }
   };
 
@@ -111,7 +121,7 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ items }) => {
                       <p className="text-sm text-gray-600 mb-3 flex-grow">{item.description}</p>
                       
                       {/* Cart controls - always at bottom */}
-                      <div className="mt-auto">
+                      <div className="flex flex-col gap-2 mt-auto">
                         {currentQuantity > 0 ? (
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -142,6 +152,9 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ items }) => {
                             Add to Cart
                           </Button>
                         )}
+                        <Button className="w-full mt-2" variant="outline" onClick={() => handleBuyNow(item)} title="Buy Now">
+                          Buy Now
+                        </Button>
                       </div>
                     </div>
                   </div>
