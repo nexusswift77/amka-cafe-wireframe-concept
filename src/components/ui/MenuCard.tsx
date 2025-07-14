@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/contexts/CartContext';
 import { Plus, Minus } from 'lucide-react';
 import type { MenuItemWithCategory } from '@/hooks/useMenuData';
+import { useNavigate } from 'react-router-dom';
 
 interface MenuCardProps {
   item: MenuItemWithCategory;
@@ -12,6 +13,7 @@ interface MenuCardProps {
 
 const MenuCard: React.FC<MenuCardProps> = ({ item, tags = [] }) => {
   const { addItem, getItemQuantity, updateQuantity, items } = useCart();
+  const navigate = useNavigate();
   
   // Format price to display as Ksh
   const formatPrice = (price: number) => `Ksh ${price.toFixed(0)}`;
@@ -43,6 +45,10 @@ const MenuCard: React.FC<MenuCardProps> = ({ item, tags = [] }) => {
     } else if (cartItem) {
       updateQuantity(cartItem.id, 0); // This will remove the item
     }
+  };
+
+  const handleBuyNow = () => {
+    navigate('/checkout', { state: { item } });
   };
 
   return (
@@ -88,7 +94,7 @@ const MenuCard: React.FC<MenuCardProps> = ({ item, tags = [] }) => {
         </div>
         
         {/* Cart controls - always at bottom */}
-        <div className="mt-auto">
+        <div className="flex flex-col gap-2 mt-auto">
           {currentQuantity > 0 ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -119,6 +125,10 @@ const MenuCard: React.FC<MenuCardProps> = ({ item, tags = [] }) => {
               Add to Cart
             </Button>
           )}
+          {/* Buy Now button always visible */}
+          <Button className="w-full mt-2" variant="outline" onClick={handleBuyNow}>
+            Buy Now
+          </Button>
         </div>
       </div>
     </div>

@@ -14,6 +14,8 @@ import Wallet from "./pages/Wallet";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Checkout from './pages/Checkout';
+import Confirmation from './pages/Confirmation';
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,8 @@ const App = () => (
               <Route path="/wallet" element={<Wallet />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/confirmation" element={<Confirmation />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

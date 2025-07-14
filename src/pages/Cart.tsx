@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
@@ -7,6 +7,9 @@ import { Plus, Minus, ShoppingCart, ArrowRight } from 'lucide-react';
 
 const Cart: React.FC = () => {
   const { items: cartItems, updateQuantity, removeItem, totalAmount, clearCart } = useCart();
+
+  const [showCostShare, setShowCostShare] = useState(false);
+  const [friendPhones, setFriendPhones] = useState<string[]>(['']);
 
   const formatPrice = (price: number) => `Ksh ${price.toFixed(0)}`;
 
@@ -21,6 +24,22 @@ const Cart: React.FC = () => {
       removeItem(itemId);
     }
   };
+
+  const handleFriendPhoneChange = (idx: number, value: string) => {
+    setFriendPhones(phones => phones.map((p, i) => (i === idx ? value : p)));
+  };
+
+  const handleAddFriend = () => {
+    setFriendPhones(phones => [...phones, '']);
+  };
+
+  const handleRemoveFriend = (idx: number) => {
+    setFriendPhones(phones => phones.filter((_, i) => i !== idx));
+  };
+
+  // Calculate split: user + friends
+  const totalPeople = 1 + friendPhones.filter(p => p.trim()).length;
+  const splitAmount = totalPeople > 0 ? Math.ceil((totalAmount + 50) / totalPeople) : 0;
 
   return (
     <PageLayout>
@@ -171,6 +190,33 @@ const Cart: React.FC = () => {
                   <Button asChild variant="outline" className="w-full">
                     <Link to="/menu">Continue Shopping</Link>
                   </Button>
+                  <Button variant="outline" className="w-full" onClick={() => setShowCostShare(s => !s)}>
+                    {showCostShare ? 'Cancel Cost Share' : 'Cost Share with Friends'}
+                  </Button>
+                  {showCostShare && (
+                    <div className="mt-6 border-t pt-4">
+                      <h3 className="font-bold text-coffee-dark mb-2">Cost Share</h3>
+                      <p className="text-sm text-gray-600 mb-4">Add friends' phone numbers to split the bill equally.</p>
+                      {friendPhones.map((phone, idx) => (
+                        <div key={idx} className="flex gap-2 mb-2">
+                          <input
+                            type="tel"
+                            className="flex-1 border rounded px-3 py-2"
+                            value={phone}
+                            onChange={e => handleFriendPhoneChange(idx, e.target.value)}
+                            placeholder="Friend's phone number"
+                          />
+                          <Button type="button" variant="ghost" onClick={() => handleRemoveFriend(idx)} disabled={friendPhones.length === 1}>
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                      <Button type="button" variant="outline" onClick={handleAddFriend} className="mb-4">Add Another Friend</Button>
+                      <div className="bg-cream rounded p-3 text-coffee-dark font-semibold text-center">
+                        Each pays: {formatPrice(splitAmount)}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="mt-4 text-xs text-gray-500 text-center">
